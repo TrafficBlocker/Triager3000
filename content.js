@@ -298,23 +298,67 @@ function runScript() {
                     }
 
                     const existingTitle = (titleElement.value || "").trim();
+                    const parts = existingTitle
+                        .split(" - ")
+                        .map((p) => p.trim())
+                        .filter(Boolean);
 
-                    let issue = existingTitle;
-                    if (existingTitle.includes(" - ")) {
-                        const lastDashIndex = existingTitle.lastIndexOf(" - ");
-                        issue = existingTitle.substring(lastDashIndex + 3).trim();
+                    // Location can contain " - " itself. Treat it as N segments.
+                    const locationRaw = (contactInfo.location || "").trim();
+                    const locationParts = locationRaw ? locationRaw.split(" - ").map((s) => s.trim()).filter(Boolean) : [];
+                    const locCount = Math.max(1, locationParts.length);
+
+                    const locNorm = normalizeString(locationRaw);
+                    const deptNorm = normalizeString(contactInfo.department);
+                    const nameNorm = normalizeString(contactInfo.name);
+
+                    const joinSegs = (arr, start, end) => arr.slice(start, end).join(" - ").trim();
+
+                    const existingLoc = joinSegs(parts, 0, Math.min(locCount, parts.length));
+                    const existingLocNorm = normalizeString(existingLoc);
+
+                    let issueParts = [];
+
+                    if (parts.length >= locCount + 2 && existingLocNorm === locNorm) {
+                        const deptIdx = locCount;
+                        const nameIdx = locCount + 1;
+
+                        const pDept = normalizeString(parts[deptIdx] || "");
+                        const pName = normalizeString(parts[nameIdx] || "");
+
+                        // Already triaged: LocationSegments - Department - Name - Issue...
+                        if (parts.length >= locCount + 3 && pDept === deptNorm && pName === nameNorm) {
+                            issueParts = parts.slice(locCount + 2);
+                        } else {
+                            // Original-ish format: LocationSegments - Name - Issue...
+                            const pMaybeName = normalizeString(parts[locCount] || "");
+                            if (parts.length >= locCount + 2 && pMaybeName === nameNorm) {
+                                issueParts = parts.slice(locCount + 1);
+                            } else {
+                                // Unknown tail format; keep everything after location as issue
+                                issueParts = parts.slice(locCount);
+                            }
+                        }
+                    } else {
+                        issueParts = parts;
                     }
 
-                    let ticketTitle = [
-                        contactInfo.location,
-                        contactInfo.department,
-                        contactInfo.name
-                    ]
-                        .filter(part => part && String(part).trim() !== "")
+                    const issue = issueParts.join(" - ").trim();
+
+                    let ticketTitle = [contactInfo.location, contactInfo.department, contactInfo.name]
+                        .filter((part) => part && String(part).trim() !== "")
                         .join(" - ");
 
                     if (issue) {
-                        ticketTitle += " - " + issue;
+                        // If issue already starts with our prefix, strip it (prevents full duplication)
+                        const prefixNorm = normalizeString(ticketTitle);
+                        const issueNorm = normalizeString(issue);
+                        if (issueNorm.startsWith(prefixNorm + " - ")) {
+                            const stripped = issue.substring(ticketTitle.length + 3).trim();
+                            if (stripped) ticketTitle += " - " + stripped;
+                        } else {
+                            ticketTitle += " - " + issue;
+                        }
                     } else {
                         ticketTitle += " -";
                     }
@@ -614,10 +658,11 @@ function runScript() {
         }, 250);
     }
 
-        function main() {
+        async function main() {
             let contactInfo = findContactInfo();
+            contactInfo.department = await resolveDepartmentFromTitle(contactInfo.department);
             setTicketTitle(contactInfo);
-            setTicketDescription(contactInfo);
+            await setTicketDescription(contactInfo);
             setDropdownToYes();
             setPCNameField(contactInfo);
             if (window.mode === "New Ticket") {
@@ -746,6 +791,6 @@ function runScript() {
             });
         })();
 
-        main();
+        Promise.resolve(main()).catch(console.error);
     })();
 }
