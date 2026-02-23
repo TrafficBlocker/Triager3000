@@ -11,6 +11,7 @@ Setting Up the Extension:
 Download the Triager3000 v1.6.zip attached on the right
 Right click on the file and select "Extract All"
 Open preferred browser--either Microsoft Edge or Google Chrome
+
 Microsoft Edge:
     
     1. Type this into your search bar: edge://extensions
@@ -51,7 +52,6 @@ Do NOT click into the text box
 
 Now you are all set up!
 
-Some Things to Note:
-Make sure to edit ticket title to reflect department NOT job (e.g IT not IT Director)
-callback number will pull the store number. If best callback number is different, change it
-you will still need to accurately select issue/sub-issue and link the asset
+Some things to note:
+Callback number will sometimes pull the store number. If best callback number is different, change it
+You will still need to accurately select issue/sub-issue and link the asset
