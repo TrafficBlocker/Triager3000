@@ -152,10 +152,6 @@
         "parts specialist",
         "parts advisor",
         "parts consultant",
-        "inventory",
-        "parts inventory",
-        "inventory clerk",
-        "parts inventory clerk",
         "shipping",
         "receiving",
         "parts shipping",
@@ -363,7 +359,8 @@
         "retail sales",
         "retail consultant",
         "internet manager",
-        "ecommerce manager"
+        "ecommerce manager",
+        "used inventory specialist"
     ],
     "Reception": [
         "receptionist",
@@ -534,17 +531,5 @@
         "network admin",
         "it manager",
         "it director"
-    ],
-    "Management": [
-        "manager",
-        "director",
-        "operations manager",
-        "operations director",
-        "general operations manager",
-        "regional manager",
-        "district manager",
-        "assistant manager",
-        "agm",
-        "assistant general manager"
     ]
 }
